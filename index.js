@@ -4,24 +4,44 @@
  * session persistence, api calls, and more.
  * */
 const Alexa = require("ask-sdk-core");
+const axios = require("axios");
+
+const BACKEND_URL = "https://42tt7ez55b.execute-api.us-east-1.amazonaws.com/dev/api/v1/user/raffle";
+
+const getWinner = async () => {
+  const response = await axios.get(BACKEND_URL);
+  return response.data.winnerMessage;
+};
 
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
+    console.log("LaunchRequestHandler");
     return Alexa.getRequestType(handlerInput.requestEnvelope) === "LaunchRequest";
   },
   handle(handlerInput) {
-    const speakOutput = "Hola, abriste el programa";
+    const speakOutput =
+      "Hola, bienvenido a la Generar Sorteos, indica la palabra 'sortear' para generar un sorteo";
+    return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
+  },
+};
+
+const GenerateRaffleIntentHandler = {
+  canHandle(handlerInput) {
+    console.log("GenerateRaffleIntentHandler");
     return (
-      handlerInput.responseBuilder
-        .speak(speakOutput)
-        //   .reprompt(speakOutput)
-        .getResponse()
+      Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+      Alexa.getIntentName(handlerInput.requestEnvelope) === "GenerateRaffleIntent"
     );
+  },
+  async handle(handlerInput) {
+    const response = await getWinner();
+    return handlerInput.responseBuilder.speak(response).reprompt(response).getResponse();
   },
 };
 
 const HelpIntentHandler = {
   canHandle(handlerInput) {
+    console.log("HelpIntentHandler");
     return (
       Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
       Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.HelpIntent"
@@ -35,6 +55,7 @@ const HelpIntentHandler = {
 
 const CancelAndStopIntentHandler = {
   canHandle(handlerInput) {
+    console.log("CancelAndStopIntentHandler");
     return (
       Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
       (Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.CancelIntent" ||
@@ -53,6 +74,7 @@ const CancelAndStopIntentHandler = {
  * */
 const FallbackIntentHandler = {
   canHandle(handlerInput) {
+    console.log("FallbackIntentHandler");
     return (
       Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
       Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.FallbackIntent"
@@ -70,6 +92,7 @@ const FallbackIntentHandler = {
  * */
 const SessionEndedRequestHandler = {
   canHandle(handlerInput) {
+    console.log("SessionEndedRequestHandler");
     return Alexa.getRequestType(handlerInput.requestEnvelope) === "SessionEndedRequest";
   },
   handle(handlerInput) {
@@ -85,6 +108,7 @@ const SessionEndedRequestHandler = {
  * */
 const IntentReflectorHandler = {
   canHandle(handlerInput) {
+    console.log("IntentReflectorHandler");
     return Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest";
   },
   handle(handlerInput) {
@@ -105,6 +129,7 @@ const IntentReflectorHandler = {
  * */
 const ErrorHandler = {
   canHandle() {
+    console.log("ErrorHandler");
     return true;
   },
   handle(handlerInput, error) {
@@ -123,6 +148,7 @@ const ErrorHandler = {
 exports.handler = Alexa.SkillBuilders.custom()
   .addRequestHandlers(
     LaunchRequestHandler,
+    GenerateRaffleIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     FallbackIntentHandler,
